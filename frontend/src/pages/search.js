@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { FaSearch, FaSpinner, FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 import logo from "../images/hikerai.png";
 
 function SearchPage() {
@@ -21,25 +22,34 @@ function SearchPage() {
     }
   };
 
-  const handleSendMessage = () => {
+
+  const handleSendMessage = async () => {
     if (inputMessage.trim() !== "") {
       const newUserMessage = { text: inputMessage.trim(), isUser: true };
       setChatMessages((prevMessages) => [...prevMessages, newUserMessage]);
       setInputMessage("");
       setIsSearching(true);
-
+      
+      const response = await fetch("http://localhost:5000/invoke", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: inputMessage.trim() })});
+      if (!response.ok) {
+        throw new Error("response not ok");
+      }
+      const data = await response.json();
       setTimeout(() => {
         const botResponse = {
-          name: "Great Kills Park Trail",
-          location: "Great Kills Park, Staten Island",
-          difficulty: "Easy",
-          length: "Short",
-          rating: "4+",
-          noise: "quiet",
-          description:
-            "Great Kills Park Trail is a stunning hiking trail located in Great Kills Park, Staten Island. It offers breathtaking views of nature, including lush forests, serene lakes, and majestic mountains. With its easy difficulty level, it's perfect for hikers of all skill levels. The trail is relatively short in length, making it ideal for a quick outdoor adventure or a leisurely stroll. Rated 4+, it's known for its pristine beauty and tranquil atmosphere, providing hikers with a peaceful escape from the hustle and bustle of city life. If you're looking for a quiet and scenic hike, Great Kills Park Trail is the perfect destination.",
+          name: data.name,
+          location: data.address,
+          difficulty: data.difficulty,
+          ratings: data.ratings,
+          description: data.description,
+          reviews: data.reviews,
           image:
-            "https://www.thewowstyle.com/wp-content/uploads/2015/01/nature-images.jpg",
+            data.image,
         };
 
         const botResponseMessage = {
@@ -129,14 +139,11 @@ function SearchPage() {
                             {message.response.difficulty}
                           </p>
                           <p className="text-sm mb-3">
-                            <strong>Length:</strong> {message.response.length}
+                            <strong>Rating:</strong> {message.response.ratings}
                           </p>
                           <p className="text-sm mb-3">
-                            <strong>Rating:</strong> {message.response.rating}
-                          </p>
-                          <p className="text-sm mb-3">
-                            <strong>Noise Level:</strong>{" "}
-                            {message.response.noise}
+                            <strong>Reviews </strong>{" "}
+                            {message.response.reviews}
                           </p>
                           <p className="text-sm">
                             <strong>Description:</strong>{" "}

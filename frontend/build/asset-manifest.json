@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/static/css/main.ae0fbeca.css",
-    "main.js": "/static/js/main.f6d287f1.js",
-    "static/js/787.fcea0ce9.chunk.js": "/static/js/787.fcea0ce9.chunk.js",
+    "main.css": "/static/css/main.9bca5387.css",
+    "main.js": "/static/js/main.18e94c05.js",
+    "static/js/453.2811eea4.chunk.js": "/static/js/453.2811eea4.chunk.js",
     "static/media/jungle1.png": "/static/media/jungle1.5ec83d96505269c854f3.png",
     "static/media/background.png": "/static/media/background.f8e0a3e86fb4252623af.png",
     "static/media/jungle3.png": "/static/media/jungle3.5350abbda455914478ee.png",
@@ -12,13 +12,15 @@
     "static/media/jungle2.png": "/static/media/jungle2.b3f7031947988987d357.png",
     "static/media/logo_land.png": "/static/media/logo_land.38bc453f18c7f64bebdc.png",
     "static/media/jungle5.png": "/static/media/jungle5.6f841a2d5b2b021093df.png",
+    "static/media/logo2.png": "/static/media/logo2.5b71e726077026618899.png",
+    "static/media/hikerai.png": "/static/media/hikerai.426563909c04c087ebcf.png",
     "index.html": "/index.html",
-    "main.ae0fbeca.css.map": "/static/css/main.ae0fbeca.css.map",
-    "main.f6d287f1.js.map": "/static/js/main.f6d287f1.js.map",
-    "787.fcea0ce9.chunk.js.map": "/static/js/787.fcea0ce9.chunk.js.map"
+    "main.9bca5387.css.map": "/static/css/main.9bca5387.css.map",
+    "main.18e94c05.js.map": "/static/js/main.18e94c05.js.map",
+    "453.2811eea4.chunk.js.map": "/static/js/453.2811eea4.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ae0fbeca.css",
-    "static/js/main.f6d287f1.js"
+    "static/css/main.9bca5387.css",
+    "static/js/main.18e94c05.js"
   ]
 }

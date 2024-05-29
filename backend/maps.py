@@ -1,13 +1,14 @@
 import os
-
 import googlemaps
+
+from collections import defaultdict
 from dotenv import load_dotenv
 
 load_dotenv
 
 class MapsAPI():
     """
-    Maps abstracts over the maps API operations
+    MapsAPI abstracts over the maps API operations
     """
 
     def __init__(self) -> None:
@@ -16,25 +17,42 @@ class MapsAPI():
             raise AttributeError("unable to create api object")
         self.client = googlemaps.Client(key=self.API_KEY)
     
+    def geocode(self, latitude, longitude):
+        return self.client.reverse_geocode((longitude, latitude))
+        
     def get_place_info(self, model_query: str):
         """
         get_place_info returns important information about a given place (trail).
         such as location, ratings, and even the google photo for rendering on the frontend.
         """
-
-        place_info = self.client.find_place("Bryant Park", input_type="textquery")
+        park_name = model_query["name"]
+        if not park_name:
+            raise AttributeError("missing park name")
+        
+        place_info = self.client.find_place(park_name, input_type="textquery")
+        print(place_info)
         place_id = place_info["candidates"][0]["place_id"]
         detailed_info = self.client.place(
-            place_id=place_id)
-        
-        results = detailed_info["result"]
-        address = results["formatted_address"]
-        image_reference = results["photos"][0]["photo_reference"]
-        ratings = results["rating"]
-        reviews = results["reviews"][0]["text"]
-        summary =  results["editorial_summary"]["overview"]
+            place_id=place_id
+        )
+        try:
+            results = detailed_info["result"]
+            address = results["formatted_address"]
+            image_reference = results["photos"][0]["photo_reference"]
+            ratings = results["rating"]
+            reviews = results["reviews"][0]["text"]
+        except KeyError as ke:
+            return {"error": ke}
+
+        print(results)
+        # summary =  results["editorial_summary"]["overview"]
         _ = self.get_place_photo(image_reference)
-        return f"address: {address}\n, rating: {ratings},\n image_reference: {image_reference},\n reviews: {reviews},\n summary: {summary}"
+        return {
+            "address": address,
+            "ratings": ratings,
+            "reviews": reviews
+            # "summary": summary
+        }
 
     def get_place_photo(self, image_reference):
         """
