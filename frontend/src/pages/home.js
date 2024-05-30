@@ -4,7 +4,7 @@ import "../App.css";
 import logo from "../images/logo2.png";
 import { Link } from "react-router-dom";
 import ParallaxLoader from "../components/ParallaxLoader";
-import { FaArrowDown } from "react-icons/fa";
+import ScrollingArrow from "../components/ScrollingArrow";
 
 function Home() {
   const [parallaxReady, setParallaxReady] = useState(false);
@@ -14,11 +14,6 @@ function Home() {
     setParallaxReady(true);
   };
 
-  const handleScrollDown = () => {
-    if (parallaxRef.current) {
-      parallaxRef.current.scrollTo(1);
-    }
-  };
   return (
     <div className="App">
       {!parallaxReady && <ParallaxLoader />}
@@ -27,8 +22,8 @@ function Home() {
         pages={2}
         style={{ top: "0", left: "0" }}
         className="animation"
-        ready={handleParallaxReady}
         ref={parallaxRef}
+        onScroll={handleParallaxReady}
       >
         <ParallaxLayer offset={0} speed={0.25}>
           <div className="animation_layer parallax" id="artback"></div>
@@ -67,38 +62,34 @@ function Home() {
           <div className="animation_layer parallax" id="jungle5"></div>
         </ParallaxLayer>
 
-        <ParallaxLayer offset={0.9} speed={0.8}>
-          <div
-            className=" z-50 cursor-pointer flex justify-center items-center "
-            onClick={handleScrollDown}
-          >
-            <div className="">
-              <FaArrowDown
-                className="text-white bg-black bg-opacity-50 rounded-full p-2 animate-bounce"
-                size={42}
-              />
-            </div>
-          </div>
+        <ParallaxLayer offset={0.9} speed={-10}>
+          <ScrollingArrow targetRef={parallaxRef} />
         </ParallaxLayer>
+
         <ParallaxLayer offset={1} speed={0.25}>
-          <div className="h-dvh bg-[#210002]">
-            <div className="w-1/2 mx-auto flex flex-col items-center justify-center h-[70%]">
-              <img src={logo} className="mb-8" alt="logo" />
-              <div className="text-center">
-                <p className="text-xs sm:text-sm md:text-lg text-[#ffaf1b] mt-10 mb-10">
-                  Discover the best hiking trails in New York City with HikerAI.
-                  We provide you with the best trails, so you can enjoy the
-                  great outdoors without any hassle.
+          <div className="h-dvh bg-[#210002] flex flex-col justify-between animate-fadeIn">
+            <div className="w-2/3 mx-auto flex flex-col items-center justify-center h-[70%]">
+              <h1 className="cursor-default text-5xl sm:text-6xl font-bold tracking-wide ml-2 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-400 ">
+                HIKER AI
+              </h1>
+              <h4 className="cursor-default mt-2 text-sm sm:text-md font-bold tracking-wide ml-2 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-400 ">
+                HIKING {"   "} TRAIL {"   "} ADVISOR
+              </h4>
+              <div className="text-center space-y-6">
+                <p className="text-md sm:text-lg md:text-xl text-[#ffaf1b] mt-10 mb-10 font-light leading-relaxed animate-slideIn">
+                  Discover the finest hiking trails in New York City with
+                  HikerAI. Enjoy the great outdoors without any hassle—we've got
+                  you covered.
                 </p>
                 <Link to="/search">
-                  <button className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg text-xs sm:text-md md:text-lg font-semibold mt-20">
+                  <button className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600  text-white py-3 px-8 rounded-full text-xs sm:text-md md:text-lg font-semibold shadow-lg transform transition-transform hover:scale-105 mt-10 sm:mt-20 animate-bounceIn">
                     Find a Hiking Trail
                   </button>
                 </Link>
               </div>
             </div>
-            <footer className="fixed w-full bottom-0 flex justify-center items-center text-center text-yellow-300 text-xs font-normal py-2 bg-gray-900 bg-opacity-50 ">
-              Created With By HikerAI Team
+            <footer className="w-full flex justify-center items-center text-center text-yellow-300 text-xs font-normal py-2 bg-gray-900 bg-opacity-50 border-t border-yellow-300">
+              Created with ❤️ by the HikerAI Team
             </footer>
           </div>
         </ParallaxLayer>

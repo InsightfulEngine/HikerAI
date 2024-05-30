@@ -9,7 +9,6 @@ const SearchTrailFeatures = () => {
 
   const handleSearch = () => {
     console.log("Searching for:", searchQuery);
-    // You can implement the search functionality here
   };
 
   return (
