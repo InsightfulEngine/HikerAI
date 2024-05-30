@@ -1,19 +1,18 @@
 import os
 import asyncio
 import logging
-import requests
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from quart import Quart, request, jsonify
+from quart_cors import cors
 from sentence_transformers import SentenceTransformer
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
+from aiohttp import ClientSession
 from google_maps import MapsAPI
 
+app = Quart(__name__)
+app = cors(app, allow_origin="*")
 
-app = Flask(__name__)
-CORS(app, origins="*")
+maps_api = MapsAPI()
 
 # Load environment variables
 load_dotenv()
@@ -24,8 +23,6 @@ logger = logging.getLogger(__name__)
 
 # Initialize SentenceTransformer model
 embedding_model = SentenceTransformer("thenlper/gte-large")
-
-maps_api = MapsAPI()
 
 
 # MongoDB connection
@@ -48,7 +45,9 @@ async def get_embeddings(text: str) -> list:
         logger.warning("Attempted to get embedding for empty text.")
         return []
     try:
-        embedding = await asyncio.to_thread(embedding_model.encode, text)
+        embedding = await asyncio.get_event_loop().run_in_executor(
+            None, embedding_model.encode, text
+        )
         return embedding.tolist()
     except Exception as e:
         logger.error(f"Failed to generate embedding: {e}")
@@ -93,7 +92,7 @@ async def vector_search(user_query: str, collection) -> list:
 
 
 # Search result formatting
-async def get_search_result(query: str, collection) -> str:
+async def get_search_result(query: str, collection) -> dict:
     search_result = await vector_search(query, collection)
     formatted_result = {}
     for result in search_result:
@@ -128,8 +127,9 @@ async def send_message_to_chatbot(input_message: str, history: list) -> dict:
         "keep_alive": "30m",
     }
     try:
-        response = await asyncio.to_thread(requests.post, url, json=payload)
-        return response.json()
+        async with ClientSession() as session:
+            async with session.post(url, json=payload) as response:
+                return await response.json()
     except Exception as e:
         logger.error(f"Failed to send message to chatbot: {e}")
         return {}
@@ -139,24 +139,18 @@ async def send_message_to_chatbot(input_message: str, history: list) -> dict:
 @app.route("/query", methods=["POST"])
 async def query_hiking_trail():
     try:
-        data = request.json
+        data = await request.json
         query = data.get("query", "").lower()
         history = data.get("history", [])
         mongo_client = await get_mongo_client()
         collection = mongo_client["hikerai"]["nyc_hiking_trails"]
         search_result = await get_search_result(query, collection)
-        # combined_information = (
-        #     query
-        #     if not search_result
-        #     else f"Query: {query}\n\nTask: Your task is to return without anything else just one JSON object of the best match for the query using the provided search results. If none of the search results match the query, apologize to the user and ask if you can help with anything else.\n\nSearch Results:\n{search_result}"
-        # )
         if not search_result:
             response = await send_message_to_chatbot(query, history)
             if response and "message" in response and "content" in response["message"]:
                 return jsonify({"message": response["message"]["content"]})
             else:
                 return jsonify({"message": "Failed to get response from chatbot."}), 500
-
         place_info = maps_api.get_place_info(search_result)
         place_info["name"] = search_result["name"]
         place_info["image"] = (
@@ -172,14 +166,5 @@ async def query_hiking_trail():
         return jsonify({"message": "Internal server error"}), 500
 
 
-# async def start_server():
-#     config = Config()
-#     config.bind = ["0.0.0.0:5000"]
-#     config.debug = True
-#     await serve(app, config)
-
-
-# Main function to run the server
 if __name__ == "__main__":
-    # asyncio.run(start_server())
     app.run(host="0.0.0.0", port=5000, debug=True)

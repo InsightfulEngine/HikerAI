@@ -3,7 +3,7 @@ import googlemaps
 from collections import defaultdict
 from dotenv import load_dotenv
 
-load_dotenv
+load_dotenv()
 
 
 class MapsAPI:

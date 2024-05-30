@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../images/hikerai.png";
 import ReactMarkdown from "react-markdown";
+import RatingStars from "../components/RatingStars";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "../customScrollbar.css";
@@ -399,12 +400,12 @@ function SearchPage() {
                           <img
                             src={message.response.image}
                             alt="Trail"
-                            className="h-auto w-1/2 object-cover rounded-3xl"
+                            className="h-auto w-1/2 object-cover rounded-2xl"
                           />
                         )}
                         <div className="py-4 px-5 flex flex-col justify-center">
                           {message.response.name && (
-                            <h2 className="text-xl sm:text-3xl font-semibold mb-3">
+                            <h2 className="text-2xl sm:text-4xl font-semibold mb-3">
                               {message.response.name}
                             </h2>
                           )}
@@ -420,22 +421,22 @@ function SearchPage() {
                               {message.response.difficulty}
                             </p>
                           )}
-                          {message.response.trailLength && (
+                          {message.response.surface && (
                             <p className="text-md mb-3">
-                              <strong>Length:</strong> {message.response.length}
+                              <strong>Surface:</strong>{" "}
+                              {message.response.surface}
                             </p>
                           )}
-                          {message.response.rating && (
-                            <p className="text-mdmb-3">
-                              <strong>Rating:</strong> {message.response.rating}
-                            </p>
+                          {message.response.ratings && (
+                            <RatingStars rating={message.response.ratings} />
                           )}
-                          {message.response.noise && (
+                          {message.response.reviews && (
                             <p className="text-md mb-3">
-                              <strong>Noise Level:</strong>{" "}
-                              {message.response.noise}
+                              <strong>Reviews:</strong>{" "}
+                              {message.response.reviews.split("\n")[0]}
                             </p>
                           )}
+
                           {message.response.description && (
                             <p className="text-md">
                               <strong>Description:</strong>{" "}
@@ -450,13 +451,15 @@ function SearchPage() {
                       </div>
                     )}
                   </div>
-                  <button
-                    className="ml-10 mt-1 relative bg-[#333444] rounded-2xl w-7 h-7 flex items-center justify-center text-white opacity-70 hover:opacity-100 focus:outline-none"
-                    alt="Copy"
-                    onClick={() => copyToClipboard(message.response)}
-                  >
-                    <BiSolidCopy />
-                  </button>
+                  {typeof message.response !== "object" && (
+                    <button
+                      className="ml-10 mt-1 relative bg-[#333444] rounded-2xl w-7 h-7 flex items-center justify-center text-white opacity-70 hover:opacity-100 focus:outline-none"
+                      alt="Copy"
+                      onClick={() => copyToClipboard(message.response)}
+                    >
+                      <BiSolidCopy />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
