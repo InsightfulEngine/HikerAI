@@ -1,7 +1,9 @@
 import os
 import googlemaps
 from collections import defaultdict
+from io import BytesIO
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 
@@ -50,14 +52,16 @@ class MapsAPI:
         except KeyError as ke:
             return {"error": str(ke)}
 
-        if image_reference:
-            _ = self.get_place_photo(image_reference)
-
-        return {
+        park_result = {
             "address": address,
             "ratings": ratings,
             "reviews": reviews,
         }
+        if image_reference:
+            image_bytes = self.get_place_photo(image_reference)
+            park_result["image"] = image_bytes
+
+        return park_result
 
     def get_place_photo(self, image_reference):
         """
@@ -65,9 +69,14 @@ class MapsAPI:
         """
         try:
             image = open("test_img.jpg", "wb")
+            image_data = BytesIO()
+
             for chunk in self.client.places_photo(image_reference, max_width=720):
                 if chunk:
-                    image.write(chunk)
+                    image_data.write(chunk)
+            image_data.seek(0)
+            image_bytes = base64.b64encode(image_data.getvalue()).decode('utf-8')
             image.close()
+            return image_bytes
         except IOError as e:
-            return "error trying to write file: {}".format(e)
+            return "error trying to write bytes: {}".format(e.strerror)

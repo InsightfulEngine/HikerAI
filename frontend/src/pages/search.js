@@ -395,13 +395,15 @@ function SearchPage() {
 
                   <div className="sm:ml-11 ml-8 py-1 px-1 max-w-[80%] sm:max-w-[90%] xl:max-w-[91%] rounded-3xl overflow-hidden m-2 bg-[#444444] text-md sm:text-lg">
                     {typeof message.response === "object" ? (
-                      <div className="flex flex-row xl:flex-row">
+                      <div className="flex flex-col sm:flex-row">
                         {message.response.image && (
-                          <img
-                            src={message.response.image}
-                            alt="Trail"
-                            className="h-auto w-1/2 object-cover rounded-2xl"
-                          />
+                          <div className="h-[20rem] w-full flex-shrink-0 sm:w-1/2 sm:h-auto">
+                            <img
+                              src={`data:image/png;base64,${message.response.image}`}
+                              alt="Trail"
+                              className="h-full w-full object-cover rounded-2xl"
+                            />
+                          </div>
                         )}
                         <div className="py-4 px-5 flex flex-col justify-center">
                           {message.response.name && (

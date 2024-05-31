@@ -7,8 +7,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sentence_transformers import SentenceTransformer
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 from google_maps import MapsAPI
 
 
@@ -33,9 +31,9 @@ async def get_mongo_client():
     mongo_client = None
     try:
         username = os.getenv("USERNAME")
-        password = os.getenv("PASSWORD")
-        mongo_uri = f"mongodb+srv://{username}:{password}@hikerai.t4bsryy.mongodb.net/?retryWrites=true&w=majority&appName=hikerai"
-        mongo_client = AsyncIOMotorClient(mongo_uri, maxPoolSize=10)
+        uri = os.getenv("MONGO_URI")
+        # mongo_uri = f"mongodb+srv://{username}:{password}@hikerai.t4bsryy.mongodb.net/?retryWrites=true&w=majority&appName=hikerai"
+        mongo_client = AsyncIOMotorClient(uri, maxPoolSize=10)
         logger.info("Connected to MongoDB")
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
@@ -61,29 +59,29 @@ async def vector_search(user_query: str, collection) -> list:
     if not query_embedding:
         return "Invalid query or embedding generation failed."
     pipeline = [
-        {
-            "$vectorSearch": {
-                "index": "vector_index",
-                "queryVector": query_embedding,
-                "path": "embedding",
-                "numCandidates": 150,
-                "limit": 1,
-            }
-        },
-        {
-            "$project": {
+            {
+                "$vectorSearch": {
+                    "index": "vector_index",
+                    "queryVector": query_embedding,
+                    "path": "embedding",
+                    "numCandidates": 5000,  # Number of candidate documents to consider.
+                    "limit": 1,  # Return top 4 matches.
+                }
+            },
+            {
+                "$project": {
                 "_id": 0,
                 "Park_Name": 1,
                 "Trail_Name": 1,
                 "Latitude": 1,
                 "Longitude": 1,
                 "Difficulty": 1,
-                "Borough": 1,
                 "Surface": 1,
                 "Embedding_Score": {"$meta": "vectorSearchScore"},
-            }
-        },
-    ]
+                }
+            },
+        ]
+        # Execute the vector search 
     try:
         results = await collection.aggregate(pipeline).to_list(length=None)
         return results
@@ -110,7 +108,7 @@ async def get_search_result(query: str, collection) -> str:
 
 # Sending message to chatbot
 async def send_message_to_chatbot(input_message: str, history: list) -> dict:
-    url = "http://localhost:11434/api/chat"
+    url = "http://localhost:3000/api/chat"
     payload = {
         "model": "dolphin-phi",
         "messages": [
@@ -118,7 +116,7 @@ async def send_message_to_chatbot(input_message: str, history: list) -> dict:
                 "role": "system",
                 "content": "You are HikerAI, an expert on hiking trails in New York City (NYC). Your role is to help users find the perfect hiking adventure in NYC. Ask about trail locations, difficulty levels, lengths, ratings, and any other hiking-related details. Provide clear, concise, and accurate responses. Only provide relevant information and do not hallucinate. When suggesting hiking trails, highlight the park's name in bold and list its details in an organized way. If unsure, say 'I don't know.' If users ask about conversation's history, you will share only the user's messages.",
             },
-            *[
+            [
                 {"role": message["role"], "content": message["response"]}
                 for message in history
             ],
@@ -143,7 +141,7 @@ async def query_hiking_trail():
         query = data.get("query", "").lower()
         history = data.get("history", [])
         mongo_client = await get_mongo_client()
-        collection = mongo_client["hikerai"]["nyc_hiking_trails"]
+        collection = mongo_client["hiker_ai"]["documents"]
         search_result = await get_search_result(query, collection)
         # combined_information = (
         #     query
@@ -159,9 +157,12 @@ async def query_hiking_trail():
 
         place_info = maps_api.get_place_info(search_result)
         place_info["name"] = search_result["name"]
-        place_info["image"] = (
+
+        if "image" not in place_info:
+            place_info["image"] = (
             "https://upload.wikimedia.org/wikipedia/commons/3/3b/Rymill_park_path.jpg"
         )
+       
         place_info["difficulty"] = search_result["difficulty"]
         place_info["trailLength"] = "5 miles"
         place_info["surface"] = search_result["surface"]
