@@ -84,17 +84,16 @@ function SearchPage() {
       setTimeout(async () => {
         if (!searchCanceled) {
           try {
-            const lastFiveMessages = chatMessages.slice(-4);
+            const lastFiveMessages = chatMessages.slice(-2);
             const history =
-              lastFiveMessages.length >= 4 ? lastFiveMessages : chatMessages;
+              lastFiveMessages.length >= 2 ? lastFiveMessages : chatMessages;
             const filteredHistory = history.filter(
               (message) => typeof message.response !== "object"
             );
-            console.log("History:", filteredHistory);
             // const response = await axios.post(
             //   "http://localhost:11434/api/chat",
             //   {
-            //     model: "dolphin-phi",
+            //     model: "tinydolphin",
             //     messages: [
             //       {
             //         role: "system",
@@ -104,7 +103,7 @@ function SearchPage() {
             //           "You are HikerAI, an expert on hiking trails in New York City (NYC). Your role is to help users find the perfect hiking adventure in NYC. Ask about trail locations, difficulty levels, lengths, ratings, and any other hiking-related details. Provide clear, concise, and accurate responses. Only provide relevant information and do not hallucinate. When suggesting hiking trails, highlight the park's name in bold and list its details in an organized way. If unsure, say 'I don't know.' If users ask about conversation's history, you will share only the user's messages.",
             //       },
 
-            //       ...history.map((message) => ({
+            //       ...filteredHistory.map((message) => ({
             //         role: message.role,
             //         content: message.text,
             //       })),
@@ -122,7 +121,6 @@ function SearchPage() {
             };
 
             const response = await axios.post(url, payload);
-            console.log("Response from server:", response.data);
             const botResponseMessage = {
               response: response.data.message,
               role: "assistant",
@@ -391,29 +389,45 @@ function SearchPage() {
                 </div>
               ) : (
                 <div className="flex flex-col justify-start relative">
-                  <MdAssistant className="absolute  w-6 h-6 sm:w-8 sm:h-8 rounded-full mr-2 mt-4" />
+                  <MdAssistant className="absolute  w-6 h-6 sm:w-8 sm:h-8 rounded-full mr-2 mt-5" />
 
                   <div className="sm:ml-11 ml-8 py-1 px-1 max-w-[80%] sm:max-w-[90%] xl:max-w-[91%] rounded-3xl overflow-hidden m-2 bg-[#444444] text-md sm:text-lg">
                     {typeof message.response === "object" ? (
-                      <div className="flex flex-row xl:flex-row">
+                      <div className="flex flex-col sm:flex-row">
                         {message.response.image && (
-                          <img
-                            src={message.response.image}
-                            alt="Trail"
-                            className="h-auto w-1/2 object-cover rounded-2xl"
-                          />
+                          <div className="h-[20rem] w-full flex-shrink-0 sm:w-1/2 sm:h-auto">
+                            <img
+                              src={message.response.image}
+                              alt="Trail"
+                              className="h-full w-full object-cover rounded-2xl"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src =
+                                  "https://www.elachee.org/wp-content/uploads/2022/06/Chicopee-Woods-Hiking-Trails-dodd-m.jpg";
+                              }}
+                            />
+                          </div>
                         )}
                         <div className="py-4 px-5 flex flex-col justify-center">
                           {message.response.name && (
-                            <h2 className="text-2xl sm:text-4xl font-semibold mb-3">
+                            <h2 className="text-2xl sm:text-3xl font-semibold mb-3">
                               {message.response.name}
                             </h2>
                           )}
                           {message.response.address && (
-                            <p className="text-md mb-3">
-                              <strong>Address:</strong>{" "}
-                              {message.response.address}
-                            </p>
+                            <div className="flex flex-row">
+                              <strong className="mr-2">Address:</strong>{" "}
+                              <a
+                                href={message.response.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="cursor-pointer hover:underline transition duration-300 text-blue-400 hover:text-blue-600"
+                              >
+                                <p className="text-md mb-3">
+                                  {message.response.address}
+                                </p>
+                              </a>
+                            </div>
                           )}
                           {message.response.difficulty && (
                             <p className="text-md mb-3">
@@ -430,17 +444,16 @@ function SearchPage() {
                           {message.response.ratings && (
                             <RatingStars rating={message.response.ratings} />
                           )}
+                          {message.response.summary && (
+                            <p className="text-md mb-3">
+                              <strong>Description:</strong>{" "}
+                              {message.response.summary}
+                            </p>
+                          )}
                           {message.response.reviews && (
                             <p className="text-md mb-3">
                               <strong>Reviews:</strong>{" "}
                               {message.response.reviews.split("\n")[0]}
-                            </p>
-                          )}
-
-                          {message.response.description && (
-                            <p className="text-md">
-                              <strong>Description:</strong>{" "}
-                              {message.response.description}
                             </p>
                           )}
                         </div>

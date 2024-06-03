@@ -1,6 +1,6 @@
 import os
 import googlemaps
-from collections import defaultdict
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,6 +38,8 @@ class MapsAPI:
         try:
             results = detailed_info["result"]
             address = results["formatted_address"]
+            url = results["url"]
+
             image_reference = (
                 results["photos"][0]["photo_reference"] if "photos" in results else None
             )
@@ -47,27 +49,35 @@ class MapsAPI:
                 if "reviews" in results
                 else "No reviews available"
             )
+            summary = results["editorial_summary"]["overview"]
         except KeyError as ke:
             return {"error": str(ke)}
 
+        image_url = None
         if image_reference:
-            _ = self.get_place_photo(image_reference)
+            image_url = self.get_place_photo(image_reference)
 
         return {
+            "url": url,
             "address": address,
             "ratings": ratings,
+            "image": image_url,
             "reviews": reviews,
+            "summary": summary,
         }
 
     def get_place_photo(self, image_reference):
         """
-        gets the corresponding's trail image and writes it in bytes. NOTE: will probably change this for the frontend
+        Gets the corresponding trail image link.
         """
         try:
-            image = open("test_img.jpg", "wb")
-            for chunk in self.client.places_photo(image_reference, max_width=720):
-                if chunk:
-                    image.write(chunk)
-            image.close()
-        except IOError as e:
-            return "error trying to write file: {}".format(e)
+            base_url = "https://maps.googleapis.com/maps/api/place/photo"
+            params = {
+                "photoreference": image_reference,
+                "maxwidth": 720,
+                "key": self.API_KEY,
+            }
+            url = requests.Request("GET", base_url, params=params).prepare().url
+            return url
+        except Exception as e:
+            return f"Error generating image URL: {e}"

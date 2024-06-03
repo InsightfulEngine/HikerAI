@@ -112,11 +112,11 @@ async def get_search_result(query: str, collection) -> str:
 async def send_message_to_chatbot(input_message: str, history: list) -> dict:
     url = "http://localhost:11434/api/chat"
     payload = {
-        "model": "dolphin-phi",
+        "model": "tinydolphin",
         "messages": [
             {
                 "role": "system",
-                "content": "You are HikerAI, an expert on hiking trails in New York City (NYC). Your role is to help users find the perfect hiking adventure in NYC. Ask about trail locations, difficulty levels, lengths, ratings, and any other hiking-related details. Provide clear, concise, and accurate responses. Only provide relevant information and do not hallucinate. When suggesting hiking trails, highlight the park's name in bold and list its details in an organized way. If unsure, say 'I don't know.' If users ask about conversation's history, you will share only the user's messages.",
+                "content": "You are HikerAI built and made by the Hiker.ai team, an expert on hiking trails in New York City (NYC). Your role is to help users find the perfect hiking adventure in NYC. Ask about trail locations, difficulty levels, and any other hiking-related details. Provide short, clear, concise, and accurate responses. Only provide relevant information and do not hallucinate. When suggesting hiking trails, highlight the park's name in bold and list its details in an organized way. If unsure, say 'I don't know.' If users ask about conversation's history, you will share only the user's messages.",
             },
             *[
                 {"role": message["role"], "content": message["response"]}
@@ -159,11 +159,7 @@ async def query_hiking_trail():
 
         place_info = maps_api.get_place_info(search_result)
         place_info["name"] = search_result["name"]
-        place_info["image"] = (
-            "https://upload.wikimedia.org/wikipedia/commons/3/3b/Rymill_park_path.jpg"
-        )
         place_info["difficulty"] = search_result["difficulty"]
-        place_info["trailLength"] = "5 miles"
         place_info["surface"] = search_result["surface"]
         return jsonify({"message": place_info})
 
